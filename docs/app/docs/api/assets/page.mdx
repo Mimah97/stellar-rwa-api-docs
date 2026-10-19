@@ -13,6 +13,18 @@ export const metadata = {
 Replace <code>$API_BASE_URL</code> in examples with your configured API base URL (see <a href="/docs/api/overview">API Overview</a>).
 </CalloutBox>
 
+<CalloutBox variant="tip" title="New to Stellar? Key terms">
+- **Ledger** — a numbered block of transactions on the Stellar network. Ledger sequences increase over time and are used as a clock (e.g. "held for 100 ledgers").
+- **Base units** — the smallest indivisible unit of a token. A token with `decimals = 2` stores `1000000` base units for `10,000.00` display tokens.
+- **`i128`** — a 128-bit signed integer, the on-chain type used for token amounts. The API returns these as decimal strings so JavaScript clients don't lose precision.
+- **Contract address** — the `C…` identifier of a deployed Soroban smart contract (e.g. `token_contract`, `compliance_contract`).
+- **Account address** — the `G…` identifier of a Stellar account (e.g. `issuer`).
+- **SEP-41** — the Stellar standard token interface; contracts implementing it work with standard wallets and tooling.
+- **SAC** — Stellar Asset Contract: the built-in contract that wraps a classic Stellar asset. Asset tokens here are custom contracts, not SACs.
+- **TTL / footprint** — Soroban storage has a time-to-live (TTL) and each transaction declares a footprint (the ledger entries it reads/writes). These are handled by the contract and SDKs; the REST API does not expose them.
+- **Passphrase** — the network identifier string (e.g. `Test SDF Network ; September 2015`) that distinguishes Testnet from Mainnet. It is configured in your SDK/CLI, not sent to this API.
+</CalloutBox>
+
 ## List assets
 
 <ApiEndpoint method="GET" path="/assets" description="All tokenized assets with valuation, supply and holder counts." />
@@ -221,13 +233,6 @@ the change takes effect.
 | `set_dividend_deadline(ledger)` | Admin sets the ledger by which dividends must be claimed |
 | `claim_dividend(holder)` | Holder claims their accrued dividend |
 | `reclaim_dividend(holder)` | Issuer reclaims an unclaimed dividend after the deadline |
-| `cancel_dividend(holder)` | Issuer cancels a pending dividend for a holder |
+| `cancel_dividend(h
 
-See [API · Dividends](/docs/api/dividends) for the indexed distribution history.
-
-## What to read next
-
-- [API · Holders](/docs/api/holders) — list holders and balances for an asset.
-- [API · Compliance](/docs/api/compliance) — aggregate compliance stats for an asset.
-- [API · Dividends](/docs/api/dividends) — distribution history for an asset.
-- [Time & Ledgers](/docs/time-and-ledgers) — understanding ledger sequences used in `created_at_ledger` and `indexed_at_ledger`.
+/* … truncated 536 chars — edit only what you need near the top … */
