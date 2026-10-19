@@ -35,28 +35,6 @@ Results are paginated to keep large collections bounded. Use `offset` and `limit
 curl "$API_BASE_URL/assets?asset_type=real_estate&active=true&offset=0&limit=50"
 ```
 
-**Response schema** (per asset):
-
-| Field | Type | Notes |
-|-------|------|-------|
-| `id` | number | Registry id |
-| `token_contract` | string | Asset-token contract |
-| `issuer` | string | Issuer account |
-| `name` | string | |
-| `symbol` | string | |
-| `asset_type` | string | `real_estate` \| `invoice` \| `commodity` |
-| `description` | string | |
-| `valuation_cents` | string | Valuation in **USD cents** (`i128` string). Divide by 100 to get USD dollars. |
-| `valuation_usd` | number | Valuation in **USD dollars** (`f64` convenience float, equal to `valuation_cents / 100`). |
-| `decimals` | number | Number of decimal places used by this asset token (e.g. `2`). |
-| `total_supply` | string | Total supply in **base units** (`i128` string in the token's `decimals` base). Divide by `10 ** decimals` to get the human-readable token amount. |
-| `holders` | number | Addresses with a positive balance |
-| `active` | boolean | |
-| `paused` | boolean | |
-| `compliance_contract` | string | Gate for this asset |
-| `created_at_ledger` | number | |
-| `indexed_at_ledger` | number | Most recent ledger successfully indexed for this asset |
-| `index_error` | string or null | Per-asset index error, if the latest refresh failed |
 **Response schema** (`Asset`, per asset):
 
 | Field | Type | Unit | Nullable | Description |
@@ -161,6 +139,71 @@ const displayUsd = Number(rawCents) / 100;
 // => 5000000.00 ($5,000,000.00 USD)
 ```
 </CalloutBox>
+
+## Contract entry points
+
+The asset-token contract exposes the following entry points. They are invoked
+directly on-chain (via the Stellar CLI or an SDK) rather than through the REST
+API; the API only reflects their resulting state (`total_supply`, `holders`,
+`paused`, etc.).
+
+### SEP-41 token interface
+
+Asset tokens implement the [SEP-41](https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0041.md)
+token interface, so standard tooling works out of the box:
+
+| Entry point | Description |
+|-------------|-------------|
+| `allowance(from, spender)` | Remaining amount `spender` may transfer on behalf of `from` |
+| `approve(from, spender, amount, expiration_ledger)` | Set an allowance with an expiration ledger |
+| `balance(id)` | Balance of an address in base units |
+| `transfer(from, to, amount)` | Move tokens between addresses |
+| `transfer_from(spender, from, to, amount)` | Move tokens using an existing allowance |
+| `burn(from, amount)` | Burn tokens from an address |
+| `burn_from(spender, from, amount)` | Burn tokens using an existing allowance |
+| `decimals()` | Token precision (matches the API `decimals` field) |
+| `name()` | Token name (matches the API `name` field) |
+| `symbol()` | Token symbol (matches the API `symbol` field) |
+
+### Batch operations
+
+Batch entry points apply the same compliance and balance checks as their
+single-item counterparts, but process many recipients in one transaction:
+
+| Entry point | Description |
+|-------------|-------------|
+| `batch_transfer(from, recipients, amounts)` | Transfer to multiple recipients at once |
+| `batch_mint(to, amounts)` | Mint to multiple recipients at once |
+| `batch_burn(from, amounts)` | Burn from multiple addresses at once |
+
+### Admin handover
+
+| Entry point | Description |
+|-------------|-------------|
+| `propose_admin(new_admin)` | Current admin proposes a successor |
+| `accept_admin()` | Proposed admin accepts and takes over |
+| `get_admin()` | Returns the current admin address |
+
+Admin handover is two-step: the successor must call `accept_admin()` before
+the change takes effect.
+
+### Min-holding-period
+
+| Entry point | Description |
+|-------------|-------------|
+| `set_min_holding_period(ledgers)` | Admin sets the minimum number of ledgers a balance must be held before transfer |
+| `get_min_holding_period()` | Returns the configured minimum holding period in ledgers |
+
+### Dividends
+
+| Entry point | Description |
+|-------------|-------------|
+| `set_dividend_deadline(ledger)` | Admin sets the ledger by which dividends must be claimed |
+| `claim_dividend(holder)` | Holder claims their accrued dividend |
+| `reclaim_dividend(holder)` | Issuer reclaims an unclaimed dividend after the deadline |
+| `cancel_dividend(holder)` | Issuer cancels a pending dividend for a holder |
+
+See [API · Dividends](/docs/api/dividends) for the indexed distribution history.
 
 ## What to read next
 
