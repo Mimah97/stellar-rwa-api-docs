@@ -25,6 +25,18 @@ Replace <code>$API_BASE_URL</code> in examples with your configured API base URL
 - **Passphrase** — the network identifier string (e.g. `Test SDF Network ; September 2015`) that distinguishes Testnet from Mainnet. It is configured in your SDK/CLI, not sent to this API.
 </CalloutBox>
 
+## Related reference pages
+
+Assets are the entry point to several related resources. Jump straight to the
+page you need:
+
+- [Holders](/docs/api/holders) — per-address balances for an asset (`holders` count here).
+- [Dividends](/docs/api/dividends) — distributions paid to asset holders.
+- [Stats](/docs/api/stats) — aggregate supply, valuation and holder metrics.
+- [Events](/docs/api/events) — on-chain events emitted by the asset-token contract.
+- [Compliance](/docs/api/compliance) — compliance rules enforced via `compliance_contract`.
+- [Field selection](/docs/api/field-selection) — how the `fields` sparse fieldset works.
+
 ## List assets
 
 <ApiEndpoint method="GET" path="/assets" description="All tokenized assets with valuation, supply and holder counts." />
@@ -37,7 +49,7 @@ Returns an array of asset objects.
 |------|------|-------|
 | `asset_type` | string | Filter by class: `real_estate`, `invoice`, `commodity` |
 | `active` | boolean | Filter by active status |
-| `fields` | string | Sparse fieldset: comma-separated list such as `id,name,active`. |
+| `fields` | string | Sparse fieldset: comma-separated list such as `id,name,active`. See [Field selection](/docs/api/field-selection). |
 | `offset` | integer | Skip the first N matching assets. Default: `0`. |
 | `limit` | integer | Page size. Default: `50`; maximum: `100`. |
 
@@ -62,10 +74,10 @@ curl "$API_BASE_URL/v1/assets?asset_type=real_estate&active=true&offset=0&limit=
 | `valuation_usd` | number | USD | No | Convenience valuation in dollars |
 | `decimals` | integer | Decimal places | No | Token precision for converting base units |
 | `total_supply` | string | Asset-token base units | No | Exact supply (`i128` serialized as a decimal string) |
-| `holders` | integer | Addresses | No | Addresses with a positive balance |
+| `holders` | integer | Addresses | No | Addresses with a positive balance (see [Holders](/docs/api/holders)) |
 | `active` | boolean | — | No | |
 | `paused` | boolean | — | No | |
-| `compliance_contract` | string | — | No | Compliance contract address |
+| `compliance_contract` | string | — | No | Compliance contract address (see [Compliance](/docs/api/compliance)) |
 | `created_at_ledger` | integer | Ledger sequence | No | |
 | `indexed_at_ledger` | integer | Ledger sequence | No | Most recent ledger successfully indexed for this asset |
 | `index_error` | string | — | Yes | Error from the latest per-asset index attempt; JSON `null` when there is no error |
@@ -145,6 +157,8 @@ You can also request a sparse fieldset with `?fields=`; for example:
 curl "$API_BASE_URL/v1/assets/1?fields=id,name,active,indexed_at_ledger"
 ```
 
+See [Field selection](/docs/api/field-selection) for the full syntax.
+
 **Errors**
 
 ```json
@@ -199,40 +213,6 @@ token interface, so standard tooling works out of the box:
 
 ### Batch operations
 
-Batch entry points apply the same compliance and balance checks as their
-single-item counterparts, but process many recipients in one transaction:
+Bat
 
-| Entry point | Description |
-|-------------|-------------|
-| `batch_transfer(from, recipients, amounts)` | Transfer to multiple recipients at once |
-| `batch_mint(to, amounts)` | Mint to multiple recipients at once |
-| `batch_burn(from, amounts)` | Burn from multiple addresses at once |
-
-### Admin handover
-
-| Entry point | Description |
-|-------------|-------------|
-| `propose_admin(new_admin)` | Current admin proposes a successor |
-| `accept_admin()` | Proposed admin accepts and takes over |
-| `get_admin()` | Returns the current admin address |
-
-Admin handover is two-step: the successor must call `accept_admin()` before
-the change takes effect.
-
-### Min-holding-period
-
-| Entry point | Description |
-|-------------|-------------|
-| `set_min_holding_period(ledgers)` | Admin sets the minimum number of ledgers a balance must be held before transfer |
-| `get_min_holding_period()` | Returns the configured minimum holding period in ledgers |
-
-### Dividends
-
-| Entry point | Description |
-|-------------|-------------|
-| `set_dividend_deadline(ledger)` | Admin sets the ledger by which dividends must be claimed |
-| `claim_dividend(holder)` | Holder claims their accrued dividend |
-| `reclaim_dividend(holder)` | Issuer reclaims an unclaimed dividend after the deadline |
-| `cancel_dividend(h
-
-/* … truncated 536 chars — edit only what you need near the top … */
+/* … truncated 1515 chars — edit only what you need near the top … */
