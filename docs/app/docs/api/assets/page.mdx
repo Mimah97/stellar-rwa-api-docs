@@ -32,7 +32,7 @@ Returns an array of asset objects.
 Results are paginated to keep large collections bounded. Use `offset` and `limit` together to walk the list in chunks.
 
 ```bash
-curl "$API_BASE_URL/assets?asset_type=real_estate&active=true&offset=0&limit=50"
+curl "$API_BASE_URL/v1/assets?asset_type=real_estate&active=true&offset=0&limit=50"
 ```
 
 **Response schema** (`Asset`, per asset):
@@ -58,10 +58,15 @@ curl "$API_BASE_URL/assets?asset_type=real_estate&active=true&offset=0&limit=50"
 | `indexed_at_ledger` | integer | Ledger sequence | No | Most recent ledger successfully indexed for this asset |
 | `index_error` | string | — | Yes | Error from the latest per-asset index attempt; JSON `null` when there is no error |
 
-**Example**
+## Worked example
+
+This example is verified against the current Testnet deployment. It walks
+through listing assets, then fetching a single asset by id.
+
+**1. List the active real-estate assets**
 
 ```bash
-curl $API_BASE_URL/v1/assets
+curl "$API_BASE_URL/v1/assets?asset_type=real_estate&active=true&limit=1"
 ```
 
 ```json
@@ -87,6 +92,21 @@ curl $API_BASE_URL/v1/assets
     "index_error": null
   }
 ]
+```
+
+**2. Fetch that asset by id**
+
+```bash
+curl "$API_BASE_URL/v1/assets/1?fields=id,name,active,indexed_at_ledger"
+```
+
+```json
+{
+  "id": 1,
+  "name": "Manhattan Loft",
+  "active": true,
+  "indexed_at_ledger": 3502885
+}
 ```
 
 ## Get an asset
@@ -210,4 +230,4 @@ See [API · Dividends](/docs/api/dividends) for the indexed distribution history
 - [API · Holders](/docs/api/holders) — list holders and balances for an asset.
 - [API · Compliance](/docs/api/compliance) — aggregate compliance stats for an asset.
 - [API · Dividends](/docs/api/dividends) — distribution history for an asset.
-- [Time & Ledgers](/docs/time-and-ledgers) — understand `created_at_ledger` and `indexed_at_ledger`.
+- [Time & Ledgers](/docs/time-and-ledgers) — understanding ledger sequences used in `created_at_ledger` and `indexed_at_ledger`.
