@@ -59,6 +59,57 @@ Results are paginated to keep large collections bounded. Use `offset` and `limit
 curl "$API_BASE_URL/v1/assets?asset_type=real_estate&active=true&offset=0&limit=50"
 ```
 
+### Field selection
+
+Use `fields` to request a sparse fieldset and shrink the response to just the
+attributes you need. Field names are validated against the asset schema; an
+unknown name is rejected with `400` (see [Errors](/docs/api/errors)):
+
+```bash
+curl "$API_BASE_URL/assets?fields=id,symbol,valuation_usd,active"
+```
+
+```json
+[
+  {
+    "id": 1,
+    "symbol": "MLOFT",
+    "valuation_usd": 5000000.0,
+    "active": true
+  }
+]
+```
+
+```json
+{ "error": "invalid_parameter", "message": "unknown field `valuation`" }
+```
+
+Returned with status `400` when any requested field is not part of the asset
+schema. See [Field selection](/docs/api/field-selection) for the full rules.
+
+**Response schema** (per asset):
+
+| Field | Type | Notes |
+|-------|------|-------|
+| `id` | number | Registry id |
+| `token_contract` | string | Asset-token contract |
+| `issuer` | string | Issuer account |
+| `name` | string | |
+| `symbol` | string | |
+| `asset_type` | string | `real_estate` \| `invoice` \| `commodity` |
+| `description` | string | |
+| `valuation_cents` | string | Valuation in **USD cents** (`i128` string). Divide by 100 to get USD dollars. |
+| `valuation_usd` | number | Valuation in **USD dollars** (`f64` convenience float, equal to `valuation_cents / 100`). |
+| `decimals` | number | Number of decimal places used by this asset token (e.g. `2`). |
+| `total_supply` | string | Total supply in **base units** (`i128` string in the token's `decimals` base). Divide by `10 ** decimals` to get the human-readable token amount. |
+| `holders` | number | Addresses with a positive balance |
+| `active` | boolean | |
+| `paused` | boolean | |
+| `compliance_contract` | string | Gate for this asset |
+| `created_at_ledger` | number | |
+| `indexed_at_ledger` | number | Most recent ledger successfully indexed for this asset |
+| `index_error` | string or null | Per-asset index error, if the latest refresh failed |
+
 **Response schema** (`Asset`, per asset):
 
 | Field | Type | Unit | Nullable | Description |
@@ -166,7 +217,14 @@ See [Field selection](/docs/api/field-selection) for the full syntax.
 ```
 
 Returned with status `404` when no asset has the given id. A non-numeric id
-(`/assets/abc`) is rejected with `400` by the router.
+(`/assets/abc`) is rejected with status `400`:
+
+```json
+{ "error": "bad_request", "message": "invalid asset id" }
+```
+
+All error responses use the shared body shape `{"error": "<code>", "message": "<text>"}`.
+See [API · Errors](/docs/api/errors) for the canonical shape and the full list of codes.
 
 <CalloutBox variant="tip" title="Amount units and conversions">
 Both `total_supply` and `valuation_cents` are 128-bit integers returned as strings to prevent rounding in JavaScript runtimes.
